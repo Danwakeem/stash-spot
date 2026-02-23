@@ -298,6 +298,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: dev
     permissions:
       pull-requests: write
     steps:
@@ -315,8 +316,8 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_DEFAULT_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY_DEV }}
-          CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY_DEV }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY }}
 
       - name: Run migrations
         run: npx wrangler d1 migrations apply stash-db --env pr-${{ github.event.number }}
@@ -329,7 +330,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           D1_DATABASE_ID: ${{ steps.deploy.outputs.d1_database_id }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY_DEV }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           SEED_ENV: preview
 
       - name: Comment PR
@@ -340,7 +341,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `🛹 Preview deployed: ${{ steps.deploy.outputs.api_url }}`
+              body: `Preview deployed: ${{ steps.deploy.outputs.api_url }}`
             })
 ```
 
@@ -358,6 +359,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: prod
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -372,8 +374,8 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_DEFAULT_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY_PROD }}
-          CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY_PROD }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY }}
 
       - name: Run migrations
         run: npx wrangler d1 migrations apply stash-db --env production
@@ -395,6 +397,7 @@ on:
 jobs:
   teardown:
     runs-on: ubuntu-latest
+    environment: dev
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -407,7 +410,7 @@ jobs:
       - name: Teardown Clerk test users
         run: npx tsx workers/api/src/db/teardown.ts
         env:
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY_DEV }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           STAGE: pr-${{ github.event.number }}
 
       - name: Teardown SST preview
@@ -415,8 +418,8 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_DEFAULT_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY_DEV }}
-          CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY_DEV }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY }}
 ```
 
 ### Teardown Script (`workers/api/src/db/teardown.ts`)
@@ -446,16 +449,18 @@ console.log('Teardown complete')
 
 Note: Clerk user deletion is safe to run even if the users don't exist — the script checks before deleting. D1, R2, and the Worker are all torn down by `sst remove` so no explicit DB cleanup is needed.
 
+Secrets are scoped using [GitHub Environments](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment). Create two environments in your repo settings: `dev` and `prod`.
+
+Each environment needs these secrets:
+
 ```
 CLOUDFLARE_API_TOKEN          # Cloudflare API token with Workers/D1/R2 permissions
 CLOUDFLARE_ACCOUNT_ID         # Cloudflare account ID
-CLERK_SECRET_KEY_DEV          # Clerk secret key for dev/preview instance
-CLERK_PUBLISHABLE_KEY_DEV     # Clerk publishable key for dev/preview instance
-CLERK_SECRET_KEY_PROD         # Clerk secret key for production instance
-CLERK_PUBLISHABLE_KEY_PROD    # Clerk publishable key for production instance
+CLERK_SECRET_KEY              # Clerk secret key (dev or prod depending on environment)
+CLERK_PUBLISHABLE_KEY         # Clerk publishable key (dev or prod depending on environment)
 ```
 
-Use separate Clerk instances for dev/preview and production. In the Clerk dashboard, create two applications — one for dev/preview (all PRs share it) and one for production.
+Use separate Clerk applications for each environment. In the Clerk dashboard, create two applications — one for `dev` (all PRs share it) and one for `prod`.
 
 ## Database Seeding
 
