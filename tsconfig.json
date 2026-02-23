@@ -13,10 +13,5 @@
     "declarationMap": true,
     "sourceMap": true,
     "noUncheckedIndexedAccess": true
-  },
-  "references": [
-    { "path": "workers/api" },
-    { "path": "packages/api-client" },
-    { "path": "apps/mobile" }
-  ]
+  }
 }

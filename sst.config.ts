@@ -9,9 +9,7 @@ export default $config({
     };
   },
   async run() {
-    const db = new sst.cloudflare.D1("StashDb", {
-      migrations: "workers/api/src/db/migrations",
-    });
+    const db = new sst.cloudflare.D1("StashDb");
 
     const photos = new sst.cloudflare.Bucket("Photos");
 
