@@ -12,7 +12,6 @@ export default function SpotLayout() {
           fontFamily: fonts.heading,
           fontSize: 20,
           color: colors.dark,
-          letterSpacing: 2,
         },
         headerTintColor: colors.dark,
         contentStyle: { backgroundColor: colors.background },
