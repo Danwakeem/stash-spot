@@ -337,12 +337,29 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            github.rest.issues.createComment({
+            const marker = '<!-- stash-preview-comment -->'
+            const body = `${marker}\nPreview deployed: ${{ steps.deploy.outputs.api_url }}`
+            const { data: comments } = await github.rest.issues.listComments({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `Preview deployed: ${{ steps.deploy.outputs.api_url }}`
             })
+            const existing = comments.find(c => c.body.includes(marker))
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              })
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body,
+              })
+            }
 ```
 
 ### Production Deploy (`/.github/workflows/deploy.yml`)
