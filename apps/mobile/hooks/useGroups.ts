@@ -32,7 +32,7 @@ export function useGroups() {
     } finally {
       setLoading(false);
     }
-  }, [getToken]);
+  }, []);
 
   useEffect(() => {
     fetchGroups();

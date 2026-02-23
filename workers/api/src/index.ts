@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { Resource } from "sst";
 import type { Env } from "./types";
 import { clerkAuth } from "./middleware/auth";
 import { spotsRoutes } from "./routes/spots";
@@ -8,6 +9,13 @@ import { groupsRoutes } from "./routes/groups";
 import { usersRoutes } from "./routes/users";
 
 const app = new Hono<Env>();
+
+// Map SST linked resources to the Hono env bindings the routes expect
+app.use("*", async (c, next) => {
+  c.env.DB = Resource.StashDb as unknown as D1Database;
+  c.env.PHOTOS = Resource.Photos as unknown as R2Bucket;
+  await next();
+});
 
 // Global middleware
 app.use("*", logger());

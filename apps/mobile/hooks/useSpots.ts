@@ -39,7 +39,7 @@ export function useSpots(tagFilter?: string) {
     } finally {
       setLoading(false);
     }
-  }, [getToken, tagFilter]);
+  }, [tagFilter]);
 
   useEffect(() => {
     fetchSpots();

@@ -12,11 +12,12 @@ import { useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { useAuth } from "@clerk/clerk-expo";
 import { colors, fonts, spacing } from "@/lib/theme";
+import { API_URL } from "@/lib/api";
 import { VALID_TAGS, type TagValue } from "@stash/api-client";
 
 const VISIBILITY_OPTIONS = ["private", "group", "public"] as const;
 
-export default function AddSpotScreen() {
+export default function AddSpotSheet() {
   const router = useRouter();
   const { getToken } = useAuth();
 
@@ -29,7 +30,6 @@ export default function AddSpotScreen() {
   const [selectedTags, setSelectedTags] = useState<TagValue[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
-  // Pre-populate GPS
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -53,15 +53,13 @@ export default function AddSpotScreen() {
       return;
     }
     if (lat == null || lng == null) {
-      Alert.alert("Error", "Location not available");
+      Alert.alert("Error", "Location not available yet. Please wait a moment.");
       return;
     }
 
     setSubmitting(true);
     try {
       const token = await getToken();
-      const API_URL =
-        process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8787";
       const res = await fetch(`${API_URL}/api/v1/spots`, {
         method: "POST",
         headers: {
@@ -81,123 +79,180 @@ export default function AddSpotScreen() {
       if (res.ok) {
         router.back();
       } else {
-        const err = await res.json();
-        Alert.alert("Error", err.error ?? "Failed to save spot");
+        const err = await res.json().catch(() => null);
+        Alert.alert("Error", err?.error ?? `Request failed (${res.status})`);
       }
-    } catch {
-      Alert.alert("Error", "Network error");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong";
+      Alert.alert("Error", message);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>ADD SPOT</Text>
+    <View style={styles.sheet}>
+      <View style={styles.handleBar} />
 
-      <Text style={styles.label}>CURRENT LOCATION</Text>
-      <Text style={styles.coords} testID="spot-location">
-        {lat != null && lng != null
-          ? `${lat.toFixed(4)}, ${lng.toFixed(4)}`
-          : "Getting location..."}
-      </Text>
-
-      <Text style={styles.label}>NAME</Text>
-      <TextInput
-        style={styles.input}
-        value={name}
-        onChangeText={setName}
-        placeholder="e.g. Hubba Hideout"
-        placeholderTextColor={colors.mutedText}
-        testID="spot-name-input"
-      />
-
-      <Text style={styles.label}>DESCRIPTION</Text>
-      <TextInput
-        style={[styles.input, styles.textArea]}
-        value={description}
-        onChangeText={setDescription}
-        placeholder="Optional notes..."
-        placeholderTextColor={colors.mutedText}
-        multiline
-        numberOfLines={3}
-      />
-
-      <Text style={styles.label}>VISIBILITY</Text>
-      <View style={styles.optionRow}>
-        {VISIBILITY_OPTIONS.map((opt) => (
-          <Pressable
-            key={opt}
-            style={[
-              styles.optionButton,
-              visibility === opt && styles.optionSelected,
-            ]}
-            onPress={() => setVisibility(opt)}
-          >
-            <Text
-              style={[
-                styles.optionText,
-                visibility === opt && styles.optionTextSelected,
-              ]}
-            >
-              {opt.toUpperCase()}
-            </Text>
-          </Pressable>
-        ))}
+      <View style={styles.header}>
+        <Text style={styles.title}>ADD SPOT</Text>
+        <Pressable
+          style={({ pressed }) => [
+            styles.cancelButton,
+            pressed && styles.cancelButtonPressed,
+          ]}
+          onPress={() => router.back()}
+        >
+          <Text style={styles.cancelText}>CANCEL</Text>
+        </Pressable>
       </View>
 
-      <Text style={styles.label}>TAGS</Text>
-      <View style={styles.tagsGrid}>
-        {VALID_TAGS.map((tag) => (
-          <Pressable
-            key={tag}
-            style={[
-              styles.tagButton,
-              selectedTags.includes(tag) && styles.tagSelected,
-            ]}
-            onPress={() => toggleTag(tag)}
-          >
-            <Text
-              style={[
-                styles.tagButtonText,
-                selectedTags.includes(tag) && styles.tagButtonTextSelected,
-              ]}
-            >
-              {tag === "other" ? "other" : tag.replace("_", " ")}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-
-      <Pressable
-        style={({ pressed }) => [
-          styles.saveButton,
-          pressed && styles.saveButtonPressed,
-          submitting && styles.saveButtonDisabled,
-        ]}
-        onPress={handleSave}
-        disabled={submitting}
+      <ScrollView
+        style={styles.scrollContent}
+        contentContainerStyle={styles.scrollInner}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.saveButtonText}>
-          {submitting ? "SAVING..." : "SAVE SPOT"}
+        <Text style={styles.label}>CURRENT LOCATION</Text>
+        <Text style={styles.coords} testID="spot-location">
+          {lat != null && lng != null
+            ? `${lat.toFixed(4)}, ${lng.toFixed(4)}`
+            : "Getting location..."}
         </Text>
-      </Pressable>
-    </ScrollView>
+
+        <Text style={styles.label}>NAME</Text>
+        <TextInput
+          style={styles.input}
+          value={name}
+          onChangeText={setName}
+          placeholder="e.g. Hubba Hideout"
+          placeholderTextColor={colors.mutedText}
+          testID="spot-name-input"
+        />
+
+        <Text style={styles.label}>DESCRIPTION</Text>
+        <TextInput
+          style={[styles.input, styles.textArea]}
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Optional notes..."
+          placeholderTextColor={colors.mutedText}
+          multiline
+          numberOfLines={3}
+        />
+
+        <Text style={styles.label}>VISIBILITY</Text>
+        <View style={styles.optionRow}>
+          {VISIBILITY_OPTIONS.map((opt) => (
+            <Pressable
+              key={opt}
+              style={[
+                styles.optionButton,
+                visibility === opt && styles.optionSelected,
+              ]}
+              onPress={() => setVisibility(opt)}
+            >
+              <Text
+                style={[
+                  styles.optionText,
+                  visibility === opt && styles.optionTextSelected,
+                ]}
+              >
+                {opt.toUpperCase()}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <Text style={styles.label}>TAGS</Text>
+        <View style={styles.tagsGrid}>
+          {VALID_TAGS.map((tag) => (
+            <Pressable
+              key={tag}
+              style={[
+                styles.tagButton,
+                selectedTags.includes(tag) && styles.tagSelected,
+              ]}
+              onPress={() => toggleTag(tag)}
+            >
+              <Text
+                style={[
+                  styles.tagButtonText,
+                  selectedTags.includes(tag) && styles.tagButtonTextSelected,
+                ]}
+              >
+                {tag === "other" ? "other" : tag.replace("_", " ")}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.saveButton,
+            pressed && styles.saveButtonPressed,
+            submitting && styles.saveButtonDisabled,
+          ]}
+          onPress={handleSave}
+          disabled={submitting}
+        >
+          <Text style={styles.saveButtonText}>
+            {submitting ? "SAVING..." : "SAVE SPOT"}
+          </Text>
+        </Pressable>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  sheet: {
     flex: 1,
     backgroundColor: colors.background,
-    padding: spacing.lg,
+  },
+  handleBar: {
+    alignSelf: "center",
+    width: 40,
+    height: 4,
+    backgroundColor: colors.mutedText,
+    borderRadius: 2,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 2,
+    borderBottomColor: colors.dark,
   },
   title: {
     fontFamily: fonts.heading,
-    fontSize: 36,
+    fontSize: 32,
     color: colors.dark,
     letterSpacing: 3,
-    marginBottom: spacing.lg,
+  },
+  cancelButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  cancelButtonPressed: {
+    opacity: 0.6,
+  },
+  cancelText: {
+    fontFamily: fonts.heading,
+    fontSize: 16,
+    color: colors.primary,
+    letterSpacing: 1,
+  },
+  scrollContent: {
+    flex: 1,
+  },
+  scrollInner: {
+    padding: spacing.lg,
+    paddingBottom: spacing.xl * 2,
   },
   label: {
     fontFamily: fonts.heading,
@@ -279,7 +334,6 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     alignItems: "center",
     marginTop: spacing.xl,
-    marginBottom: spacing.xl,
     shadowColor: colors.dark,
     shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 1,
