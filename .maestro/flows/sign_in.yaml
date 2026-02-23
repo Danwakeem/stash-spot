@@ -1,0 +1,12 @@
+appId: com.stash.skatespots
+---
+- launchApp
+- assertVisible: "STASH"
+- tapOn:
+    text: "Email"
+- inputText: "alice@skatetest.dev"
+- tapOn:
+    text: "Password"
+- inputText: "TestPassword123!"
+- tapOn: "SIGN IN"
+- assertVisible: "MAP"

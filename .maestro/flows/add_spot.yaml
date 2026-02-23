@@ -1,0 +1,11 @@
+appId: com.stash.skatespots
+---
+- launchApp
+- tapOn: "Add Spot"
+- assertVisible: "Current Location"
+- tapOn:
+    id: "spot-name-input"
+- inputText: "Test Ledge"
+- tapOn: "PRIVATE"
+- tapOn: "SAVE SPOT"
+- assertVisible: "Test Ledge"

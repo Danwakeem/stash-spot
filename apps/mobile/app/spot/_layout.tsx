@@ -1,0 +1,25 @@
+import { Stack } from "expo-router";
+import { colors, fonts } from "@/lib/theme";
+
+export default function SpotLayout() {
+  return (
+    <Stack
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.background,
+        },
+        headerTitleStyle: {
+          fontFamily: fonts.heading,
+          fontSize: 20,
+          color: colors.dark,
+          letterSpacing: 2,
+        },
+        headerTintColor: colors.dark,
+        contentStyle: { backgroundColor: colors.background },
+      }}
+    >
+      <Stack.Screen name="[id]" options={{ title: "SPOT" }} />
+      <Stack.Screen name="add" options={{ title: "ADD SPOT" }} />
+    </Stack>
+  );
+}

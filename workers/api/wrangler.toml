@@ -1,0 +1,16 @@
+name = "stash-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+CLERK_PUBLISHABLE_KEY = ""
+
+[[d1_databases]]
+binding = "DB"
+database_name = "stash-db"
+database_id = ""
+migrations_dir = "src/db/migrations"
+
+[[r2_buckets]]
+binding = "PHOTOS"
+bucket_name = "stash-photos"

@@ -1,0 +1,11 @@
+# Durable Objects deployment — separate from main worker due to SST/Terraform provider gap
+name = "stash-presence"
+main = "src/durable-objects/SpotPresence.ts"
+compatibility_date = "2024-01-01"
+
+[durable_objects]
+bindings = [{ name = "SPOT_PRESENCE", class_name = "SpotPresence" }]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SpotPresence"]
