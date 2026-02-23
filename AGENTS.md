@@ -30,7 +30,8 @@ stash-spot/
 │   └── mobile/                    # Expo SDK 54 (React Native 0.81, React 19)
 │       ├── app/                   # Expo Router v6 file-based routing
 │       │   ├── _layout.tsx        # Root layout — ClerkProvider + StatusBar
-│       │   ├── index.tsx          # Entry redirect (auth check)
+│       │   ├── index.tsx          # Entry redirect (onboarding → auth → tabs)
+│       │   ├── onboarding.tsx     # First-launch onboarding carousel (4 slides)
 │       │   ├── (auth)/            # Sign-in / sign-up screens
 │       │   │   ├── _layout.tsx
 │       │   │   ├── sign-in.tsx
