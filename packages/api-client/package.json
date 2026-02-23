@@ -8,9 +8,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "hono": "^4.0.0"
+    "hono": "^4.12.0"
   },
   "devDependencies": {
-    "typescript": "^5.5.0"
+    "typescript": "^5.9.0"
   }
 }
