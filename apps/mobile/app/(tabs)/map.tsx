@@ -54,7 +54,7 @@ export default function MapScreen() {
         // Silently fail — will retry on next focus
       }
     })();
-  }, [getToken]);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -75,7 +75,7 @@ export default function MapScreen() {
           styles.addButton,
           pressed && styles.addButtonPressed,
         ]}
-        onPress={() => router.push("/spot/add")}
+        onPress={() => router.push("/add-spot")}
       >
         <Text style={styles.addButtonText}>+</Text>
       </Pressable>

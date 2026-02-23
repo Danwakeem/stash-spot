@@ -40,7 +40,7 @@ export default function FeedScreen() {
     } catch {
       // Silently fail
     }
-  }, [getToken]);
+  }, []);
 
   useEffect(() => {
     fetchSpots();

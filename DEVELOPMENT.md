@@ -26,9 +26,23 @@ This installs all workspace dependencies, including the internal `@stash/api-cli
 npm run dev
 ```
 
-This runs `sst dev`, which starts the Cloudflare Worker with D1 and R2 bindings on `http://localhost:8787`.
+This runs `sst dev`, which deploys the Cloudflare Worker (with D1 and R2 bindings) to a dev stage on Cloudflare. The worker URL is printed in the terminal and saved to `.sst/outputs.json`.
 
-### 3. Start the Expo dev server
+### 3. Set the mobile API URL
+
+Copy the worker URL from the `sst dev` output and set it in `apps/mobile/.env`:
+
+```
+EXPO_PUBLIC_API_URL=https://<your-sst-dev-worker-url>.workers.dev
+```
+
+You can also read it from `.sst/outputs.json` after `sst dev` has started:
+
+```bash
+cat .sst/outputs.json | grep api
+```
+
+### 4. Start the Expo dev server
 
 In a separate terminal:
 
@@ -41,6 +55,8 @@ Or from `apps/mobile` directly:
 ```bash
 npx expo start
 ```
+
+> **Note:** If you change `EXPO_PUBLIC_API_URL`, restart the Expo dev server — `EXPO_PUBLIC_*` vars are baked in at bundle time.
 
 ## API Worker
 
@@ -73,11 +89,11 @@ cp apps/mobile/.env.example apps/mobile/.env
 Edit `apps/mobile/.env` with your values:
 
 ```
-EXPO_PUBLIC_API_URL=http://localhost:8787
+EXPO_PUBLIC_API_URL=https://<your-sst-dev-worker-url>.workers.dev
 EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 ```
 
-- `EXPO_PUBLIC_API_URL` — URL of the Hono API worker. Defaults to `http://localhost:8787` for local development.
+- `EXPO_PUBLIC_API_URL` — URL of the Hono API worker. Get this from `sst dev` output or `.sst/outputs.json`.
 - `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` — Your Clerk publishable key (starts with `pk_test_` for development).
 
 ### Using Expo Go
@@ -92,11 +108,7 @@ EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 
 #### Network access
 
-When using Expo Go on a physical device, your phone must be on the same network as your dev machine. Update `EXPO_PUBLIC_API_URL` in `apps/mobile/.env` to use your machine's LAN IP instead of `localhost`:
-
-```
-EXPO_PUBLIC_API_URL=http://192.168.1.x:8787
-```
+Since `sst dev` deploys the API to Cloudflare (not localhost), the worker URL is accessible from any device with internet access — no LAN IP configuration needed.
 
 ### Development Builds
 

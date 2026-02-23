@@ -1,7 +1,30 @@
+import { useEffect } from "react";
 import { Tabs } from "expo-router";
+import { useAuth } from "@clerk/clerk-expo";
 import { colors, fonts } from "@/lib/theme";
+import { API_URL } from "@/lib/api";
+
+let userEnsured = false;
 
 export default function TabLayout() {
+  const { getToken } = useAuth();
+
+  // Ensure user record exists in D1 once per app session
+  useEffect(() => {
+    if (userEnsured) return;
+    userEnsured = true;
+    (async () => {
+      try {
+        const token = await getToken();
+        await fetch(`${API_URL}/api/v1/users/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch {
+        userEnsured = false;
+      }
+    })();
+  }, []);
+
   return (
     <Tabs
       screenOptions={{

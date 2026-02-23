@@ -18,7 +18,6 @@ export default function SpotLayout() {
       }}
     >
       <Stack.Screen name="[id]" options={{ title: "SPOT" }} />
-      <Stack.Screen name="add" options={{ title: "ADD SPOT" }} />
     </Stack>
   );
 }
