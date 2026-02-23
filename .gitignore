@@ -15,6 +15,7 @@ android/
 .env.local
 .env.*.local
 .dev.vars
+.envrc
 
 # Wrangler
 .wrangler/
