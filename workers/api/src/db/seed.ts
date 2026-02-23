@@ -35,6 +35,7 @@ async function upsertClerkUsers() {
       username: u.username,
       emailAddress: [u.email],
       password: u.password,
+      skipPasswordChecks: true,
     });
     users.push(created);
   }
@@ -50,43 +51,41 @@ async function seedD1(
     throw new Error("Failed to create Clerk users");
   }
 
-  const baseUrl = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/d1/database/${process.env.D1_DATABASE_ID}/query`;
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const dbId = process.env.D1_DATABASE_ID;
+  if (!accountId || !dbId) {
+    throw new Error(
+      `Missing env vars: CLOUDFLARE_ACCOUNT_ID=${accountId ?? ""}, D1_DATABASE_ID=${dbId ?? ""}`
+    );
+  }
 
-  const sql = `
-    INSERT OR IGNORE INTO users (id, username) VALUES ('${alice.id}', '${alice.username}');
-    INSERT OR IGNORE INTO users (id, username) VALUES ('${bob.id}', '${bob.username}');
+  const baseUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${dbId}/query`;
 
-    INSERT OR IGNORE INTO spots (id, name, lat, lng, visibility, created_by)
-    VALUES ('spot_001', 'EMB', 37.7878, -122.4, 'public', '${alice.id}');
+  const statements = [
+    `INSERT OR IGNORE INTO users (id, username) VALUES ('${alice.id}', '${alice.username}')`,
+    `INSERT OR IGNORE INTO users (id, username) VALUES ('${bob.id}', '${bob.username}')`,
+    `INSERT OR IGNORE INTO spots (id, name, lat, lng, visibility, created_by) VALUES ('spot_001', 'EMB', 37.7878, -122.4, 'public', '${alice.id}')`,
+    `INSERT OR IGNORE INTO spot_tags (spot_id, tag) VALUES ('spot_001', 'ledge')`,
+    `INSERT OR IGNORE INTO spot_tags (spot_id, tag) VALUES ('spot_001', 'stairs')`,
+    `INSERT OR IGNORE INTO spots (id, name, lat, lng, visibility, created_by) VALUES ('spot_002', 'Secret Hubba', 37.791, -122.403, 'private', '${bob.id}')`,
+    `INSERT OR IGNORE INTO spot_tags (spot_id, tag) VALUES ('spot_002', 'ledge')`,
+    `INSERT OR IGNORE INTO groups (id, name, invite_code, created_by) VALUES ('grp_001', 'SF Crew', 'SK8-SF1', '${alice.id}')`,
+    `INSERT OR IGNORE INTO group_members (group_id, user_id, role) VALUES ('grp_001', '${alice.id}', 'owner')`,
+    `INSERT OR IGNORE INTO group_members (group_id, user_id, role) VALUES ('grp_001', '${bob.id}', 'member')`,
+  ];
 
-    INSERT OR IGNORE INTO spot_tags (spot_id, tag) VALUES ('spot_001', 'ledge');
-    INSERT OR IGNORE INTO spot_tags (spot_id, tag) VALUES ('spot_001', 'stairs');
+  for (const sql of statements) {
+    const res = await fetch(baseUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ sql }),
+    });
 
-    INSERT OR IGNORE INTO spots (id, name, lat, lng, visibility, created_by)
-    VALUES ('spot_002', 'Secret Hubba', 37.791, -122.403, 'private', '${bob.id}');
-
-    INSERT OR IGNORE INTO spot_tags (spot_id, tag) VALUES ('spot_002', 'ledge');
-
-    INSERT OR IGNORE INTO groups (id, name, invite_code, created_by)
-    VALUES ('grp_001', 'SF Crew', 'SK8-SF1', '${alice.id}');
-
-    INSERT OR IGNORE INTO group_members (group_id, user_id, role)
-    VALUES ('grp_001', '${alice.id}', 'owner');
-
-    INSERT OR IGNORE INTO group_members (group_id, user_id, role)
-    VALUES ('grp_001', '${bob.id}', 'member');
-  `;
-
-  const res = await fetch(baseUrl, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ sql }),
-  });
-
-  if (!res.ok) throw new Error(`D1 seed failed: ${await res.text()}`);
+    if (!res.ok) throw new Error(`D1 seed failed: ${await res.text()}\nSQL: ${sql}`);
+  }
 }
 
 const clerkUsers = await upsertClerkUsers();
