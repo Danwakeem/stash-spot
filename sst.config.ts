@@ -26,7 +26,7 @@ export default $config({
 
     return {
       api: api.url,
-      dbId: db.id,
+      dbId: db.databaseId,
     };
   },
 });
