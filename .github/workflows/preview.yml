@@ -31,7 +31,7 @@ jobs:
 
       - name: Deploy preview
         id: deploy
-        run: npx sst deploy --stage pr-${{ github.event.number }}
+        run: npx sst deploy --stage pr-${{ github.event.number }} --print-logs
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_DEFAULT_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
