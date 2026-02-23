@@ -44,7 +44,7 @@ const slides: Slide[] = [
     emoji: "👥",
     title: "BUILD YOUR\nCREW",
     subtitle: "skate together, stash together.",
-    body: "Create a crew and invite your homies with a secret code. Share spots only with the people who deserve to know.\n\nNo kooks allowed.",
+    body: "Create a crew and invite your homies with a secret code. Keep spots off the public feed so they don't get blown up and busted.\n\nLoose lips get spots fenced off.",
   },
   {
     id: "4",
