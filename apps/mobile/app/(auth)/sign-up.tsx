@@ -18,17 +18,35 @@ export default function SignUpScreen() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [pendingVerification, setPendingVerification] = useState(false);
   const [error, setError] = useState("");
 
   const handleSignUp = async () => {
     if (!isLoaded) return;
 
     try {
-      const result = await signUp.create({
+      await signUp.create({
         username,
         emailAddress: email,
         password,
       });
+
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      setPendingVerification(true);
+      setError("");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Sign up failed";
+      setError(message);
+    }
+  };
+
+  const handleVerify = async () => {
+    if (!isLoaded) return;
+
+    try {
+      const result = await signUp.attemptEmailAddressVerification({ code });
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
@@ -36,7 +54,7 @@ export default function SignUpScreen() {
       }
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "Sign up failed";
+        err instanceof Error ? err.message : "Verification failed";
       setError(message);
     }
   };
@@ -52,47 +70,76 @@ export default function SignUpScreen() {
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <TextInput
-          style={styles.input}
-          placeholder="Username"
-          placeholderTextColor={colors.mutedText}
-          value={username}
-          onChangeText={setUsername}
-          autoCapitalize="none"
-        />
+        {pendingVerification ? (
+          <>
+            <Text style={styles.verifyText}>
+              We sent a code to {email}
+            </Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor={colors.mutedText}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
+            <TextInput
+              style={styles.input}
+              placeholder="Verification code"
+              placeholderTextColor={colors.mutedText}
+              value={code}
+              onChangeText={setCode}
+              keyboardType="number-pad"
+            />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor={colors.mutedText}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={handleVerify}
+            >
+              <Text style={styles.buttonText}>VERIFY</Text>
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <TextInput
+              style={styles.input}
+              placeholder="Username"
+              placeholderTextColor={colors.mutedText}
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+            />
 
-        <Pressable
-          style={({ pressed }) => [
-            styles.button,
-            pressed && styles.buttonPressed,
-          ]}
-          onPress={handleSignUp}
-        >
-          <Text style={styles.buttonText}>SIGN UP</Text>
-        </Pressable>
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor={colors.mutedText}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
 
-        <Pressable onPress={() => router.push("/(auth)/sign-in")}>
-          <Text style={styles.link}>Already have an account? Sign in</Text>
-        </Pressable>
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor={colors.mutedText}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={handleSignUp}
+            >
+              <Text style={styles.buttonText}>SIGN UP</Text>
+            </Pressable>
+
+            <Pressable onPress={() => router.push("/(auth)/sign-in")}>
+              <Text style={styles.link}>Already have an account? Sign in</Text>
+            </Pressable>
+          </>
+        )}
       </View>
     </KeyboardAvoidingView>
   );
@@ -167,5 +214,12 @@ const styles = StyleSheet.create({
     color: colors.secondary,
     textAlign: "center",
     fontSize: 14,
+  },
+  verifyText: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.mutedText,
+    textAlign: "center",
+    marginBottom: spacing.md,
   },
 });
