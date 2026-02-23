@@ -35,6 +35,7 @@ async function upsertClerkUsers() {
       username: u.username,
       emailAddress: [u.email],
       password: u.password,
+      skipPasswordChecks: true,
     });
     users.push(created);
   }
