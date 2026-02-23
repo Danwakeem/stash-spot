@@ -48,6 +48,15 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY }}
 
+      - name: Verify deploy outputs
+        run: |
+          if [ -z "${{ steps.deploy.outputs.d1_database_id }}" ]; then
+            echo "::error::Failed to capture D1 database ID from SST deploy output"
+            echo "--- SST deploy log ---"
+            cat /tmp/sst-deploy.log
+            exit 1
+          fi
+
       - name: Seed database
         run: npx tsx workers/api/src/db/seed.ts
         env:
