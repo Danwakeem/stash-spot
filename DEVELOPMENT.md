@@ -42,6 +42,26 @@ Or from `apps/mobile` directly:
 npx expo start
 ```
 
+## API Worker
+
+### Environment variables
+
+The Cloudflare Worker uses a `.dev.vars` file for local secrets (this file is gitignored). Copy the example and fill in your Clerk secret key:
+
+```bash
+cp workers/api/.dev.vars.example workers/api/.dev.vars
+```
+
+Edit `workers/api/.dev.vars` with your values:
+
+```
+CLERK_SECRET_KEY=sk_test_...
+```
+
+- `CLERK_SECRET_KEY` — Your Clerk **secret** key (starts with `sk_test_` for development). Found in the Clerk dashboard under **API Keys**. The worker uses this to verify JWT tokens in the auth middleware.
+
+> **How it works:** Wrangler (and `sst dev`) automatically loads `workers/api/.dev.vars` and injects the values as environment bindings at runtime. Non-secret vars like `CLERK_PUBLISHABLE_KEY` are defined in `workers/api/wrangler.toml` under `[vars]` and don't need to go in `.dev.vars`.
+
 ## Mobile App
 
 ### Environment variables
