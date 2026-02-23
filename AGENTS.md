@@ -148,3 +148,18 @@ D1 migrations are applied via the Cloudflare REST API (`/client/v4/accounts/.../
 - Use `nanoid` for spot and group IDs
 - Spot tags are normalized in `spot_tags` table, not comma-separated
 - Invite codes: 6-char alphanumeric uppercase, formatted as `SK8-XXXXXX`
+
+## Keeping This File Current
+
+This file is the source of truth for agents working on this codebase. **Update it whenever you make a structural change**, including but not limited to:
+
+- Adding, removing, or renaming routes — update the API Routes table
+- Adding or modifying DB tables/columns — update the Database Schema section and the directory tree if a new migration file is added
+- Adding new workspaces, apps, or packages — update the Project Structure tree
+- Adding new screens, components, or hooks to the mobile app — update the tree
+- Changing infrastructure resources in `sst.config.ts` — update the Infrastructure section
+- Adding or modifying CI/CD workflows — update the CI/CD section
+- Changing dev commands or test runners — update the Development section
+- Adding new key rules or conventions — add them to the relevant section
+
+A quick grep for the thing you changed in this file will tell you if it's mentioned. If it is, update it. If you add something new that a future agent would need to know about, add it.
