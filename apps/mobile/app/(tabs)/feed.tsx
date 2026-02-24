@@ -7,7 +7,7 @@ import {
   Pressable,
   RefreshControl,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { colors, fonts, spacing, visibilityColors } from "@/lib/theme";
 import type { TagValue } from "@stash/api-client";
@@ -42,9 +42,11 @@ export default function FeedScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchSpots();
-  }, [fetchSpots]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchSpots();
+    }, [fetchSpots])
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

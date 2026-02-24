@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -8,8 +8,7 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import { useRouter } from "expo-router";
-import * as Location from "expo-location";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { colors, fonts, spacing } from "@/lib/theme";
 import { API_URL } from "@/lib/api";
@@ -20,26 +19,17 @@ const VISIBILITY_OPTIONS = ["private", "group", "public"] as const;
 export default function AddSpotSheet() {
   const router = useRouter();
   const { getToken } = useAuth();
+  const params = useLocalSearchParams<{ lat: string; lng: string }>();
+
+  const lat = params.lat ? parseFloat(params.lat) : null;
+  const lng = params.lng ? parseFloat(params.lng) : null;
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [lat, setLat] = useState<number | null>(null);
-  const [lng, setLng] = useState<number | null>(null);
   const [visibility, setVisibility] =
     useState<(typeof VISIBILITY_OPTIONS)[number]>("private");
   const [selectedTags, setSelectedTags] = useState<TagValue[]>([]);
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === "granted") {
-        const loc = await Location.getCurrentPositionAsync({});
-        setLat(loc.coords.latitude);
-        setLng(loc.coords.longitude);
-      }
-    })();
-  }, []);
 
   const toggleTag = (tag: TagValue) => {
     setSelectedTags((prev) =>
@@ -113,7 +103,7 @@ export default function AddSpotSheet() {
         contentContainerStyle={styles.scrollInner}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.label}>CURRENT LOCATION</Text>
+        <Text style={styles.label}>LOCATION</Text>
         <Text style={styles.coords} testID="spot-location">
           {lat != null && lng != null
             ? `${lat.toFixed(4)}, ${lng.toFixed(4)}`

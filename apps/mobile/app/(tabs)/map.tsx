@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { type LongPressEvent, Marker, type Region } from "react-native-maps";
 import { useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { useAuth } from "@clerk/clerk-expo";
@@ -24,6 +24,7 @@ export default function MapScreen() {
     latitudeDelta: 0.05,
     longitudeDelta: 0.05,
   });
+  const centerRef = useRef({ latitude: region.latitude, longitude: region.longitude });
 
   useEffect(() => {
     (async () => {
@@ -58,7 +59,17 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      <MapView style={styles.map} region={region}>
+      <MapView
+        style={styles.map}
+        region={region}
+        onRegionChangeComplete={(r: Region) => {
+          centerRef.current = { latitude: r.latitude, longitude: r.longitude };
+        }}
+        onLongPress={(e: LongPressEvent) => {
+          const { latitude, longitude } = e.nativeEvent.coordinate;
+          router.push(`/add-spot?lat=${latitude}&lng=${longitude}`);
+        }}
+      >
         {spots.map((spot) => (
           <Marker
             key={spot.id}
@@ -75,7 +86,7 @@ export default function MapScreen() {
           styles.addButton,
           pressed && styles.addButtonPressed,
         ]}
-        onPress={() => router.push("/add-spot")}
+        onPress={() => router.push(`/add-spot?lat=${centerRef.current.latitude}&lng=${centerRef.current.longitude}`)}
       >
         <Text style={styles.addButtonText}>+</Text>
       </Pressable>

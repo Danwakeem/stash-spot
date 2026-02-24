@@ -60,7 +60,7 @@ export default function TabLayout() {
         name="map"
         options={{
           title: "MAP",
-          headerTitle: "STASH",
+          headerShown: false,
         }}
       />
       <Tabs.Screen
