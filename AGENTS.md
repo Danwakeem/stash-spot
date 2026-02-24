@@ -62,15 +62,24 @@ stash-spot/
 │           ├── types.ts           # Env type (D1, R2, Clerk keys, DO)
 │           ├── middleware/
 │           │   └── auth.ts        # Clerk JWT verification → c.set("userId")
+│           ├── repos/
+│           │   ├── spots.repo.ts  # Spot DB operations (queries, inserts, updates)
+│           │   ├── groups.repo.ts # Group DB operations
+│           │   └── users.repo.ts  # User DB operations
+│           ├── services/
+│           │   ├── errors.ts      # ServiceError class (NOT_FOUND, FORBIDDEN, etc.)
+│           │   ├── spots.service.ts  # Spot business logic + validation
+│           │   ├── groups.service.ts # Group business logic + validation
+│           │   └── users.service.ts  # User business logic + validation
 │           ├── routes/
-│           │   ├── spots.ts       # CRUD + group sharing + tag filtering
+│           │   ├── spots.ts       # Thin HTTP handlers — delegates to spots.service
 │           │   ├── spots.test.ts  # Vitest unit tests (7 tests)
-│           │   ├── groups.ts      # CRUD + invite codes + membership
-│           │   └── users.ts       # GET/PATCH /users/me (auto-create on first sign-in)
+│           │   ├── groups.ts      # Thin HTTP handlers — delegates to groups.service
+│           │   └── users.ts       # Thin HTTP handlers — delegates to users.service
 │           ├── durable-objects/
 │           │   └── SpotPresence.ts # Tracks live viewers per spot
 │           ├── db/
-│           │   ├── schema.ts      # TS interfaces, VALID_TAGS, query helpers
+│           │   ├── schema.ts      # TS interfaces, VALID_TAGS only
 │           │   ├── migrations/
 │           │   │   └── 0001_initial.sql  # users, spots, groups, group_members, spot_groups, spot_tags
 │           │   ├── seed.ts        # Creates test users via Clerk + seed spots
@@ -122,7 +131,7 @@ stash-spot/
 ### Database Schema (D1)
 
 Six tables: `users`, `spots`, `groups`, `group_members`, `spot_groups`, `spot_tags`.
-Visibility is enforced at query level — see `getVisibleSpotsQuery()` and `getSpotByIdQuery()` in `schema.ts`.
+Visibility is enforced at query level — see `repos/spots.repo.ts` (`findVisibleSpots` and `findSpotByIdForUser`).
 Tags are normalized in `spot_tags` (not comma-separated). Valid tags: `ledge`, `rail`, `gap`, `stairs`, `manual_pad`, `transition`, `other`.
 
 ## Development
